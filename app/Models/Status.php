@@ -21,7 +21,7 @@ class Status extends Model
      *
      * @var string
      */
-    protected $primaryKey = 'uuid';
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -47,4 +47,9 @@ class Status extends Model
      * @var bool
      */
     public $timestamps = false;
+
+    public static function getIdBySlug($slug)
+    {
+        return self::where('slug', $slug)->first()->id;
+    }
 }

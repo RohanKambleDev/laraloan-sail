@@ -24,7 +24,17 @@ class CreateRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'amount' => 'required|numeric',
+            'term' => 'required|integer|numeric'
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'amount.required' => 'Loan cannot be created without a loan amount.',
+            'term.integer'    => 'Loan term must always be an integer.',
+            'term.required'   => 'Loan cannot be created without a loan term.'
         ];
     }
 }

@@ -20,8 +20,8 @@ return new class extends Migration
             $table->foreignUuid('loan_uuid')->references('uuid')->on('loans')->cascadeOnDelete();
             $table->date('date');
             $table->double('amount', 12, 2);
-            $table->double('amount_paid', 12, 2);
-            $table->foreignUuid('status_uuid')->references('uuid')->on('status')->cascadeOnDelete();
+            $table->double('amount_paid', 12, 2)->nullable();
+            $table->foreignId('status_id')->references('id')->on('status')->cascadeOnDelete();
             $table->timestamps();
         });
     }

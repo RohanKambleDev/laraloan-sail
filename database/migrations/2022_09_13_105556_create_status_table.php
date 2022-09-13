@@ -15,8 +15,6 @@ return new class extends Migration
     {
         Schema::create('status', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid');
-            $table->index('uuid');
             $table->char('slug');
             $table->char('name');
         });
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        // Schema::dropIfExists('status');
+        Schema::dropIfExists('status');
     }
 };

@@ -18,7 +18,6 @@ class StatusSeeder extends Seeder
         $statusArr = $this->getStatuses();
         foreach ($statusArr as $status) {
             Status::UpdateorCreate([
-                'uuid' => fake()->uuid(),
                 'slug' => $status['slug'],
                 'name' => $status['name']
             ]);
