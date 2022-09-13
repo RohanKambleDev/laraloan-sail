@@ -13,15 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('scheduled_payments', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid');
             $table->index('uuid');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->foreignUuid('loan_uuid')->references('uuid')->on('loans')->cascadeOnDelete();
+            $table->date('date');
+            $table->double('amount', 12, 2);
+            $table->double('amount_paid', 12, 2);
+            $table->foreignUuid('status_uuid')->references('uuid')->on('status')->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('scheduled_payments');
     }
 };

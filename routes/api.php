@@ -14,6 +14,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
+Route::middleware(['auth:sanctum'])
+    ->prefix('v1/loan/')
+    ->controller(LoanController::class)
+    ->group(function () {
+        Route::get('list', 'index')->name('loan-index');
+        Route::post('create', 'create')->name('loan-create');
+        Route::get('{$uuid}', 'show')->name('loan-show');
+    });
