@@ -91,7 +91,6 @@ class Loan extends Model
 
     public function scheduledPayments()
     {
-        // return $this->hasMany(ScheduledPayment::class, 'uuid', 'loan_uuid');
         return $this->hasMany(ScheduledPayment::class);
     }
 }

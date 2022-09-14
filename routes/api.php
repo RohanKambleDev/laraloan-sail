@@ -34,5 +34,5 @@ Route::middleware(['auth:sanctum'])
     ->group(function () {
         Route::get('list', 'index')->name('loan-index');
         Route::post('create', 'create')->name('loan-create');
-        Route::get('{$uuid}', 'show')->name('loan-show');
+        Route::get('{uuid}', 'show')->name('loan-show');
     });

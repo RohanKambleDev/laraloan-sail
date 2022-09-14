@@ -21,6 +21,14 @@ class LoanController extends Controller
      */
     public function index()
     {
+        // get the loans for logged in use
+        $loans = Auth::user()->loans()->get();
+
+        return response()->json([
+            'status' => true,
+            'loans' => $loans->toArray(),
+            'message' => 'Loans fetched successfully'
+        ], 200);
     }
 
     /**
@@ -71,6 +79,12 @@ class LoanController extends Controller
      */
     public function show($uuid)
     {
-        dd($uuid);
+        // get the loans for logged in use
+        $loan = Auth::user()->loans()->where('uuid', $uuid)->first();
+        return response()->json([
+            'status' => true,
+            'scheduledPayments' => $loan->scheduledPayments->toArray(),
+            'message' => 'Loan Details fetched successfully'
+        ], 200);
     }
 }
