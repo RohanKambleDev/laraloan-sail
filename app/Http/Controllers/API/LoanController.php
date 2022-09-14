@@ -21,7 +21,6 @@ class LoanController extends Controller
      */
     public function index()
     {
-        dd('in LoanController index');
     }
 
     /**
@@ -40,8 +39,7 @@ class LoanController extends Controller
 
         $loanCreated = $loan->create([
             'uuid' => Str::orderedUuid(),
-            // 'user_uuid' => Auth::user()->uuid,
-            'user_uuid' => '3e355000-d5fc-36f6-b58a-28d3dd4a5dda',
+            'user_uuid' => Auth::user()->uuid,
             'amount' => $loanAmount,
             'term' => $loanTerm,
             'status_id' => $status->getIdBySlug('pending'),
