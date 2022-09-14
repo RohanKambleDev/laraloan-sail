@@ -82,4 +82,16 @@ class ScheduledPayment extends Model
             get: fn ($value) => Carbon::parse($value)->format('Y-m-d h:i:s')
         );
     }
+
+    // protected function statusId(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn ($id) => Status::getSlugById($id)
+    //     );
+    // }
+
+    public function loan()
+    {
+        return $this->belongsTo(Loan::class);
+    }
 }

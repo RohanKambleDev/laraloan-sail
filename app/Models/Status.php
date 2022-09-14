@@ -50,6 +50,19 @@ class Status extends Model
 
     public static function getIdBySlug($slug)
     {
-        return self::where('slug', $slug)->first()->id;
+        $status = self::where('slug', $slug)->get();
+        if ($status->isEmpty()) {
+            return null;
+        }
+        return $status->first()->id;
+    }
+
+    public static function getSlugById($id)
+    {
+        $status = self::where('id', $id)->get();
+        if ($status->isEmpty()) {
+            return null;
+        }
+        return $status->first()->name;
     }
 }

@@ -35,4 +35,6 @@ Route::middleware(['auth:sanctum'])
         Route::get('list', 'index')->name('loan-index');
         Route::post('create', 'create')->name('loan-create');
         Route::get('{uuid}', 'show')->name('loan-show');
+        Route::post('payment', 'makePayment')->name('loan-payment');
+        Route::post('approve', 'approve')->name('loan-approve');
     });
