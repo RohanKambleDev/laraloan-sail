@@ -136,9 +136,12 @@ class Handler extends ExceptionHandler
                 break;
         }
 
+        // if debug flag is true show the actual detailed error message
         if (config('app.debug')) {
             $message = $exception->getMessage();
         }
+
+        // return the error json reponse
         return $this->errorResponse($message, $statusCode);
     }
 }
