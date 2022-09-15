@@ -6,181 +6,99 @@ use Carbon\Carbon;
 use App\Models\Loan;
 use App\Models\Status;
 use Illuminate\Support\Str;
+use App\Traits\API\RestTrait;
+use Illuminate\Http\Response;
 use App\Models\ScheduledPayment;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Services\LoanService;
 use App\Http\Requests\API\Loan\CreateRequest;
 use App\Http\Requests\API\Loan\ApproveRequest;
 use App\Http\Requests\API\Loan\PaymentRequest;
-use NunoMaduro\Collision\Adapters\Phpunit\State;
+use function PHPUnit\Framework\throwException;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use index;
 
 class LoanController extends Controller
 {
+    use RestTrait;
+
     /**
      * list all loan taken by the logged in user
+     * and if Admin is logged in then all the loans
+     * of all users will be displayed
      *
-     * @return void
+     * @param  Loan $loan
+     * @param  LoanService $loanService
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Loan $loan)
+    public function index(Loan $loan, LoanService $loanService)
     {
-        $user = Auth::user();
-        if ($user->hasRole('admin')) {
-            $loans = $loan->all(); // get the loans for all users
-        } else {
-            $loans = $user->loans()->get(); // get the loans for logged in use
-        }
-
-        if ($loans->isEmpty()) {
-            return response()->json([
-                'status' => true,
-                'message' => 'No Loan Found'
-            ], 200);
-        }
-
-        return response()->json([
-            'status' => true,
-            'loans' => $loans->toArray(),
-            'message' => 'Loans fetched successfully'
-        ], 200);
-    }
-
-    private function getStatus($slug)
-    {
-        return Status::getIdBySlug($slug);
+        $responseData = $loanService->listLoans($loan);
+        return $this->successResponse($responseData['data'], $responseData['message'], $responseData['statusCode']);
     }
 
     /**
-     * create a loan for logged in user
+     * create a Loan
      *
-     * @param  mixed $createRequest
-     * @return void
+     * @param  CreateRequest $request
+     * @param  Loan $loan
+     * @param  LoanService $loanService
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function create(CreateRequest $request, Loan $loan)
+    public function create(CreateRequest $request, Loan $loan, LoanService $loanService)
     {
-        // get validated request data
-        $requestData = $request->validated();
-
-        $loanAmount = $requestData['amount'];
-        $loanTerm   = $requestData['term'];
-
-        $loanCreated = $loan->create([
-            'uuid' => Str::orderedUuid(),
-            'user_uuid' => Auth::user()->uuid,
-            'amount' => $loanAmount,
-            'term' => $loanTerm,
-            'status_id' => $this->getStatus('pending'),
-            'frequency' => Loan::FREQUENCY
-        ]);
-
-        $scheduledPaymentAmount = ($loanAmount / $loanTerm);
-        $schedulePaymentArr = [
-            'date'      => now(),
-            'amount'    => $scheduledPaymentAmount,
-            'status_id' => $this->getStatus('pending'),
-        ];
-        $schedulePaymentCreateArr = [];
-        for ($i = 0; $i < $loanTerm; $i++) {
-            $schedulePaymentArr['uuid'] = Str::orderedUuid();
-            $schedulePaymentArr['date'] = Carbon::parse($schedulePaymentArr['date'])->addDays(7)->format('Y-m-d h:i:s');
-            $schedulePaymentCreateArr[] = $schedulePaymentArr;
-        }
-
-        $scheduledPaymentCreated = $loanCreated->scheduledPayments()->createMany($schedulePaymentCreateArr);
-        return response()->json([
-            'status' => true,
-            'loan' => $loanCreated,
-            'scheduledPayments' => $scheduledPaymentCreated,
-            'message' => 'Loan created successfully'
-        ], 200);
+        $requestData = $request->validated(); // get validated request data
+        $responseData = $loanService->create($requestData, $loan);
+        return $this->successResponse($responseData['data'], $responseData['message'], $responseData['statusCode']);
     }
 
     /**
      * show individual loan details
      *
-     * @param  mixed $uuid
-     * @return void
+     * @param  string $uuid
+     * @param  Loan $loan
+     * @param  LoanService $loanService
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($uuid, Loan $loan)
+    public function show($uuid, Loan $loan, LoanService $loanService)
     {
-        $user = Auth::user();
-        if ($user->hasRole('admin')) {
-            $loan = $loan->where('uuid', $uuid)->first(); // get the loan with specific uuid
-        } else {
-            $loan = $user->loans()->where('uuid', $uuid)->first(); // get the loan with specific uuid but only for logged in use
-        }
-
-        return response()->json([
-            'status' => true,
-            'scheduledPayments' => $loan->scheduledPayments->toArray(),
-            'message' => 'Loan Details fetched successfully'
-        ], 200);
+        $responseData = $loanService->viewLoan($uuid, $loan);
+        return $this->successResponse($responseData['data'], $responseData['message'], $responseData['statusCode']);
     }
 
-    public function makePayment(PaymentRequest $request, ScheduledPayment $scheduledPayment)
+    /**
+     * To make a payment againt a Loan installment
+     *
+     * @param  PaymentRequest $request
+     * @param  ScheduledPayment $scheduledPayment
+     * @param  LoanService $loanService
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function makePayment(PaymentRequest $request, ScheduledPayment $scheduledPayment, LoanService $loanService)
     {
-        // get validated request data
-        $requestData = $request->validated();
-
-        $scheduled_payment_uuid = $requestData['scheduled_payment_uuid'];
-        $amount = $requestData['amount'];
-
-        $scheduledPaymentRecord = $scheduledPayment->where('uuid', $scheduled_payment_uuid)->get();
-        if ($scheduledPaymentRecord->isEmpty()) {
-            return response()->json([
-                'status' => true,
-                'message' => 'No Scheduled Payment found'
-            ], 200);
-        }
-
-        $this->authorize('repay-loan', $scheduledPaymentRecord);
-
-        $isApproved = $scheduledPaymentRecord->first()->loan->status_id == $this->getStatus('approved');
-        if ($isApproved) {
-            $record = $scheduledPaymentRecord->first();
-            if ($amount >= $record->amount) {
-                $updated = $scheduledPayment->where('uuid', $scheduled_payment_uuid)
-                    ->update([
-                        'status_id' => $this->getStatus('paid'),
-                        'amount_paid' => $amount
-                    ]);
-                if ($updated) {
-                    return response()->json([
-                        'status' => true,
-                        'scheduledPayments' => $scheduledPayment->where('uuid', $scheduled_payment_uuid)->first()->toArray(),
-                        'message' => 'Payment successful'
-                    ], 200);
-                }
-            } else {
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Amount less than the scheduled payment amount'
-                ], 200);
-            }
-        } else {
-            return response()->json([
-                'status' => true,
-                'message' => 'Loan is not approved, so cannot make the payment'
-            ], 200);
-        }
+        $requestData = $request->validated(); // get validated request data
+        $responseData = $loanService->repayLoan($requestData, $scheduledPayment);
+        return $this->successResponse($responseData['data'], $responseData['message'], $responseData['statusCode']);
     }
 
-    public function approve(ApproveRequest $request, Loan $loan)
+    /**
+     * approve
+     *
+     * @param  ApproveRequest $request
+     * @param  Loan $loan
+     * @param  LoanService $loanService
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function approve(ApproveRequest $request, Loan $loan, LoanService $loanService)
     {
-        $loan_uuid = $request->only('loan_uuid');
-        $loanData = $loan->where('uuid', $loan_uuid)->get();
-        if ($loanData->isEmpty()) {
-            return response()->json([
-                'status' => true,
-                'message' => 'No Loan found'
-            ], 200);
-        }
-        $updated = $loan->where('uuid', $loan_uuid)->update(['status_id' => $this->getStatus('approved')]);
-        if ($updated) {
-            return response()->json([
-                'status' => true,
-                'scheduledPayments' => $loan->where('uuid', $loan_uuid)->first()->toArray(),
-                'message' => 'Loan Approved successfully'
-            ], 200);
-        }
+        $requestData = $request->validated(); // get validated request data
+        $responseData = $loanService->approveLoan($requestData, $loan);
+        return $this->successResponse($responseData['data'], $responseData['message'], $responseData['statusCode']);
     }
 }
