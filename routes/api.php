@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\LoanController;
+use App\Models\Loan;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,9 +34,9 @@ Route::middleware(['auth:sanctum'])
     ->prefix('v1/loan/')
     ->controller(LoanController::class)
     ->group(function () {
-        Route::get('list', 'index')->name('loan-index');
-        Route::post('create', 'create')->name('loan-create');
-        Route::get('{uuid}', 'show')->name('loan-show');
+        Route::get('list', 'index')->name('loan-index')->can('view-loan-list');
+        Route::post('create', 'create')->name('loan-create')->can('create-loan');
+        Route::get('{uuid}', 'show')->name('loan-show')->can('view-loan', 'uuid');
         Route::post('payment', 'makePayment')->name('loan-payment');
-        Route::post('approve', 'approve')->name('loan-approve');
+        Route::post('approve', 'approve')->name('loan-approve')->can('approve-loan');
     });

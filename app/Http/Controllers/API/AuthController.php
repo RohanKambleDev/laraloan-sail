@@ -33,6 +33,12 @@ class AuthController extends Controller
                 'password' => bcrypt($request->password),
             ]);
 
+            if ($request->get('role') === 'admin') {
+                $user->assignRole('admin');
+            } else {
+                $user->assignRole('customer');
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'User Created Successfully',

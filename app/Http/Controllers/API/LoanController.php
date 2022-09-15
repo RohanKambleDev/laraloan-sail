@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use App\Models\Loan;
 use App\Models\Status;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Models\ScheduledPayment;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -22,10 +21,14 @@ class LoanController extends Controller
      *
      * @return void
      */
-    public function index()
+    public function index(Loan $loan)
     {
-        // get the loans for logged in use
-        $loans = Auth::user()->loans()->get();
+        $user = Auth::user();
+        if ($user->hasRole('admin')) {
+            $loans = $loan->all(); // get the loans for all users
+        } else {
+            $loans = $user->loans()->get(); // get the loans for logged in use
+        }
 
         if ($loans->isEmpty()) {
             return response()->json([
@@ -97,10 +100,15 @@ class LoanController extends Controller
      * @param  mixed $uuid
      * @return void
      */
-    public function show($uuid)
+    public function show($uuid, Loan $loan)
     {
-        // get the loans for logged in use
-        $loan = Auth::user()->loans()->where('uuid', $uuid)->first();
+        $user = Auth::user();
+        if ($user->hasRole('admin')) {
+            $loan = $loan->where('uuid', $uuid)->first(); // get the loan with specific uuid
+        } else {
+            $loan = $user->loans()->where('uuid', $uuid)->first(); // get the loan with specific uuid but only for logged in use
+        }
+
         return response()->json([
             'status' => true,
             'scheduledPayments' => $loan->scheduledPayments->toArray(),
@@ -124,7 +132,9 @@ class LoanController extends Controller
             ], 200);
         }
 
-        $isApproved = $scheduledPayment->where('uuid', $scheduled_payment_uuid)->first()->loan->status_id == $this->getStatus('approved');
+        $this->authorize('repay-loan', $scheduledPaymentRecord);
+
+        $isApproved = $scheduledPaymentRecord->first()->loan->status_id == $this->getStatus('approved');
         if ($isApproved) {
             $record = $scheduledPaymentRecord->first();
             if ($amount >= $record->amount) {

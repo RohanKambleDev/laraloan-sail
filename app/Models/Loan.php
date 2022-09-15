@@ -100,4 +100,9 @@ class Loan extends Model
     {
         return $this->hasMany(ScheduledPayment::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
