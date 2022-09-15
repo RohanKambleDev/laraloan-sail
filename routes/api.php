@@ -25,12 +25,12 @@ use App\Models\User;
 Route::prefix('v1/auth/')
     ->controller(AuthController::class)
     ->group(function () {
-        Route::post('register', 'register')->name('user-register');
-        Route::post('login', 'login')->name('user-login');
-        Route::middleware(['auth:sanctum'])->post('logout', 'logout')->name('user-logout');
+        Route::middleware(['api'])->post('register', 'register')->name('user-register');
+        Route::middleware(['api'])->post('login', 'login')->name('user-login');
+        Route::middleware(['api', 'auth:sanctum'])->post('logout', 'logout')->name('user-logout');
     });
 
-Route::middleware(['auth:sanctum'])
+Route::middleware(['api', 'auth:sanctum'])
     ->prefix('v1/loan/')
     ->controller(LoanController::class)
     ->group(function () {
