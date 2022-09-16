@@ -23,21 +23,7 @@ class ScheduledPayment extends Model
      *
      * @var string
      */
-    protected $primaryKey = 'uuid';
-
-    /**
-     * The "type" of the primary key ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.

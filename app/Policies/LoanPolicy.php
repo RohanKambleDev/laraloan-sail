@@ -51,7 +51,7 @@ class LoanPolicy
                 return true;
             }
         } else {
-            if ($user->can('view_loan') && $user->loans->contains($uuid)) {
+            if ($user->can('view_loan') && $user->loans->contains('uuid', $uuid)) {
                 return true;
             }
         }

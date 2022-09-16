@@ -10,6 +10,7 @@ use App\Services\LoanService;
 use App\Http\Requests\API\Loan\CreateRequest;
 use App\Http\Requests\API\Loan\ApproveRequest;
 use App\Http\Requests\API\Loan\PaymentRequest;
+use App\Models\User;
 
 class LoanController extends Controller
 {
@@ -40,10 +41,10 @@ class LoanController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(CreateRequest $request, Loan $loan, LoanService $loanService)
+    public function create(CreateRequest $request, Loan $loan, LoanService $loanService, User $user)
     {
         $requestData = $request->validated(); // get validated request data
-        $responseData = $loanService->create($requestData, $loan);
+        $responseData = $loanService->create($requestData, $loan, $user);
         return $this->successResponse($responseData['data'], $responseData['message'], $responseData['statusCode']);
     }
 

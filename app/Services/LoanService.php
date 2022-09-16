@@ -5,13 +5,15 @@ namespace App\Services;
 use Carbon\Carbon;
 use App\Models\Loan;
 use App\Models\Status;
+use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use function PHPUnit\Framework\throwException;
+
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Response;
-
-use function PHPUnit\Framework\throwException;
 
 class LoanService
 {
@@ -59,15 +61,14 @@ class LoanService
      * @param  mixed $requestData
      * @return array
      */
-    public function create($requestData, Loan $loan)
+    public function create($requestData, Loan $loan, User $user)
     {
         $loanAmount = $requestData['amount'];
         $loanTerm   = $requestData['term'];
 
         try {
-            $loanCreated = $loan->create([
+            $loanCreated = $user->where('uuid', Auth::user()->uuid)->first()->loans()->create([
                 'uuid'      => Str::orderedUuid(),
-                'user_uuid' => Auth::user()->uuid,
                 'amount'    => $loanAmount,
                 'term'      => $loanTerm,
                 'status_id' => $this->getStatus('pending'),
@@ -169,10 +170,15 @@ class LoanService
                         ]);
                     if ($updated) {
                         $responseData = [
-                            'data' => ['scheduledPayments' => $scheduledPayment->where('uuid', $scheduled_payment_uuid)->first()->toArray()],
+                            'data' => [
+                                'scheduledPayments' => $scheduledPayment->where('uuid', $scheduled_payment_uuid)->first()->toArray()
+                            ],
                             'message' => 'Payment successful',
                             'statusCode' => Response::HTTP_OK
                         ];
+                        if ($this->closeLoan($scheduledPaymentRecord)) {
+                            $responseData['message'] = 'Full payment done, closing loan';
+                        }
                     }
                 } else {
                     $responseData = [
@@ -226,5 +232,29 @@ class LoanService
         }
 
         return $responseData;
+    }
+
+    /**
+     * once all the EMI's status is (3 - Paid)
+     * mark the Loan as paid
+     *
+     * @param  mixed $scheduledPaymentRecord
+     * @return void
+     */
+    public function closeLoan($scheduledPaymentRecord)
+    {
+        $updated        = 0;
+        $loan_id        = $scheduledPaymentRecord->first()->loan_id;
+        $totalEmis      = $scheduledPaymentRecord->first()->where('loan_id', $loan_id)->get()->pluck('status_id');
+        $totalEmisCount = $totalEmis->count();
+        $countBy        = $totalEmis->countBy()->all();
+
+        if (isset($countBy)) {
+            if ($countBy[$this->getStatus('paid')] == $totalEmisCount) {
+                $updated = $scheduledPaymentRecord->first()->loan->update(['status_id' => $this->getStatus('paid')]);
+            }
+        }
+
+        return $updated;
     }
 }
