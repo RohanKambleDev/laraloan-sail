@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid');
             $table->index('uuid');
-            $table->foreignUuid('loan_uuid')->references('uuid')->on('loans')->cascadeOnDelete();
+            $table->foreignId('loan_id')->references('id')->on('loans')->cascadeOnDelete();
             $table->date('date');
             $table->double('amount', 12, 2);
             $table->double('amount_paid', 12, 2)->nullable();

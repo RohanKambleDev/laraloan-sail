@@ -96,7 +96,7 @@ class LoanService
         $responseData = [
             'data' => [
                 'loan' => $loanCreated,
-                'scheduledPayments' => $scheduledPaymentCreated,
+                'scheduled_payments' => $scheduledPaymentCreated,
             ],
             'message' => 'Loan created successfully',
             'statusCode' => Response::HTTP_OK
@@ -126,7 +126,7 @@ class LoanService
         }
 
         $responseData = [
-            'data' => ['scheduledPayments' => $loan->scheduledPayments->toArray()],
+            'data' => ['scheduled_payments' => $loan->scheduledPayments->toArray()],
             'message' => 'Loan Details fetched successfully',
             'statusCode' => Response::HTTP_OK
         ];
@@ -149,6 +149,7 @@ class LoanService
 
         try {
             $scheduledPaymentRecord = $scheduledPayment->where('uuid', $scheduled_payment_uuid)->get();
+
             if ($scheduledPaymentRecord->isEmpty()) {
                 return [
                     'data' => [],
@@ -171,7 +172,7 @@ class LoanService
                     if ($updated) {
                         $responseData = [
                             'data' => [
-                                'scheduledPayments' => $scheduledPayment->where('uuid', $scheduled_payment_uuid)->first()->toArray()
+                                'scheduled_payments' => $scheduledPayment->where('uuid', $scheduled_payment_uuid)->first()->toArray()
                             ],
                             'message' => 'Payment successful',
                             'statusCode' => Response::HTTP_OK
@@ -225,7 +226,7 @@ class LoanService
         $updated = $loan->where('uuid', $loan_uuid)->update(['status_id' => $this->getStatus('approved')]);
         if ($updated) {
             $responseData = [
-                'data' => ['scheduledPayments' => $loan->where('uuid', $loan_uuid)->first()->toArray()],
+                'data' => ['scheduled_payments' => $loan->where('uuid', $loan_uuid)->first()->scheduledPayments->toArray()],
                 'message' => 'Loan Approved successfully',
                 'statusCode' => Response::HTTP_OK
             ];
