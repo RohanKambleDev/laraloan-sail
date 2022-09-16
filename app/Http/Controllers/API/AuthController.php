@@ -16,13 +16,31 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 class AuthController extends Controller
 {
     use RestTrait;
+
+    /**
+     * token
+     *
+     * @var string
+     */
     private $token = '';
 
+    /**
+     * __construct
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->token = config('auth.sanctum_token');
     }
 
+    /**
+     * User Register
+     *
+     * @param  RegisterRequest $request
+     * @param  User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function register(RegisterRequest $request, User $user)
     {
         try {
@@ -52,6 +70,12 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * User Login
+     *
+     * @param  LoginRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(LoginRequest $request)
     {
         try {
@@ -70,6 +94,11 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * User Logout
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout()
     {
         if (auth()->user()->tokens()->delete()) {
