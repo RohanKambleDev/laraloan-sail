@@ -173,7 +173,10 @@ class LoanTest extends TestCase
             'amount' => 10.000,
             'term' => 3
         ];
-        $this->sanctumLogin();
+        $userMember = \App\Models\User::factory()->create();
+        $userMember->assignRole('customer');
+        Sanctum::actingAs($userMember);
+
         $response = $this->postJson(route('loan-create'), $input);
         $reponseArr = $response->json();
         $input = [
@@ -189,6 +192,7 @@ class LoanTest extends TestCase
             'amount' => $reponseArr['data']['scheduled_payments'][0]['amount'],
         ];
 
+        Sanctum::actingAs($userMember);
         $this->postJson(route('loan-payment'), $input)->assertOk();
     }
 }
