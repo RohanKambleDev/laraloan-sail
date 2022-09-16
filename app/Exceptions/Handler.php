@@ -5,12 +5,12 @@ namespace App\Exceptions;
 use Throwable;
 use App\Traits\API\RestTrait;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
 class Handler extends ExceptionHandler
@@ -119,6 +119,11 @@ class Handler extends ExceptionHandler
             case $exception instanceof ServiceUnavailableHttpException:
                 $message = $exception->getMessage();
                 $statusCode = Response::HTTP_SERVICE_UNAVAILABLE;
+                break;
+
+            case $exception instanceof ValidationException:
+                $message = $exception->getMessage();
+                $statusCode = Response::HTTP_CONFLICT;
                 break;
 
             case $exception instanceof HttpResponseException:

@@ -4,15 +4,18 @@ namespace App\Http\Controllers\API;
 
 use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\API\Auth\LoginRequest;
-use App\Http\Requests\API\Auth\LogoutRequest;
+use function PHPUnit\Framework\throwException;
 use App\Http\Requests\API\Auth\RegisterRequest;
-use App\Models\Loan;
+use App\Traits\API\RestTrait;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class AuthController extends Controller
 {
+    use RestTrait;
     private $token = '';
 
     public function __construct()
@@ -39,18 +42,13 @@ class AuthController extends Controller
                 $user->assignRole('customer');
             }
 
-            return response()->json([
-                'status' => true,
-                'message' => 'User Created Successfully',
+            $data = [
                 'user' => $user,
                 'token' => $user->createToken($this->token)->plainTextToken
-            ], 200);
-        } catch (\Throwable $th) {
-
-            return response()->json([
-                'status' => false,
-                'message' => $th->getMessage()
-            ], 500);
+            ];
+            return $this->successResponse($data, 'User Created Successfully', Response::HTTP_CREATED);
+        } catch (HttpResponseException $e) {
+            throwException($e);
         }
     }
 
@@ -58,36 +56,24 @@ class AuthController extends Controller
     {
         try {
             if (!Auth::attempt($request->only(['email', 'password']))) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Email & Password does not match with our record.',
-                ], 401);
+                return $this->errorResponse('Email & Password does not match with our record.', Response::HTTP_UNAUTHORIZED);
             }
 
             $user = User::where('email', $request->email)->first();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'User Logged In Successfully',
+            $data = [
                 'user' => $user,
                 'token' => $user->createToken($this->token)->plainTextToken
-            ], 200);
-        } catch (\Throwable $th) {
-
-            return response()->json([
-                'status' => false,
-                'message' => $th->getMessage()
-            ], 500);
+            ];
+            return $this->successResponse($data, 'User Logged In Successfully', Response::HTTP_OK);
+        } catch (HttpResponseException $e) {
+            throwException($e);
         }
     }
 
     public function logout()
     {
         if (auth()->user()->tokens()->delete()) {
-            return response()->json([
-                'status' => true,
-                'message' => 'User Logged Out Successfully'
-            ], 200);
+            return $this->successResponse([], 'User Logged Out Successfully', Response::HTTP_OK);
         }
     }
 }

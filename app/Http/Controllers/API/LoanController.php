@@ -2,22 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
-use Carbon\Carbon;
 use App\Models\Loan;
-use App\Models\Status;
-use Illuminate\Support\Str;
 use App\Traits\API\RestTrait;
-use Illuminate\Http\Response;
 use App\Models\ScheduledPayment;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use App\Services\LoanService;
 use App\Http\Requests\API\Loan\CreateRequest;
 use App\Http\Requests\API\Loan\ApproveRequest;
 use App\Http\Requests\API\Loan\PaymentRequest;
-use function PHPUnit\Framework\throwException;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use index;
 
 class LoanController extends Controller
 {
