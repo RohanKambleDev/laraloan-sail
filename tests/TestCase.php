@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 abstract class TestCase extends BaseTestCase
 {
-    use CreatesApplication;
+    use CreatesApplication, RefreshDatabase;
 
     public function responseKeys()
     {
@@ -23,7 +23,7 @@ abstract class TestCase extends BaseTestCase
         // first include all the normal setUp operations
         parent::setUp();
 
-        $this->withoutExceptionHandling();
+        // $this->withoutExceptionHandling();
 
         // now re-register all the roles and permissions (clears cache and reloads relations)
         $this->app->make(\Spatie\Permission\PermissionRegistrar::class)->registerPermissions();

@@ -223,6 +223,19 @@ class LoanService
             ];
         }
 
+        if ($loanData->first()->status_id !== $this->getStatus('pending')) {
+            if ($loanData->first()->status_id === $this->getStatus('approved')) {
+                $message = 'Loan is already approved';
+            } else {
+                $message = 'Loan is paid';
+            }
+            $responseData = [
+                'data' => [],
+                'message' => $message,
+                'statusCode' => Response::HTTP_OK
+            ];
+        }
+
         $updated = $loan->where('uuid', $loan_uuid)->update(['status_id' => $this->getStatus('approved')]);
         if ($updated) {
             $responseData = [
