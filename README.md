@@ -81,7 +81,7 @@ https://documenter.getpostman.com/view/6435819/2s7YfVZVv6
 -   If you were to access the app at http://127.0.0.1:8000/ then the login route API url will be
     -   `http://127.0.0.1:8000/api/v1/auth/login`
 
-### List of avaiable routes
+### List of avaiable End Points
 
 I had a virtual host setup on my mac configured with `http://laraloan.test` domain, so the routes looked like :
 
