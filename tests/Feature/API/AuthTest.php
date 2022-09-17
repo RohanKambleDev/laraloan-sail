@@ -59,7 +59,7 @@ class AuthTest extends TestCase
         $response = $this->postJson(route('user-login'), $input)->assertStatus(200);
 
         //Write the response in laravel-testing.log
-        Log::channel('testing')->info(1, [$response->getContent()]);
+        // Log::channel('testing')->info(1, [$response->getContent()]);
 
         // predict
         $response->assertStatus(200);

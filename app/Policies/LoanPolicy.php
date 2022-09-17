@@ -66,7 +66,7 @@ class LoanPolicy
      */
     public function repay(User $user, $scheduledPaymentRecord)
     {
-        // a user can repay its own loan
+        // a customer can only repay a loan if the loan belongs to him
         if ($scheduledPaymentRecord->first()->loan->user->uuid == $user->uuid) {
             if ($user->can('repay_loan')) {
                 return true;
