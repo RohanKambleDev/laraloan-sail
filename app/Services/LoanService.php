@@ -20,6 +20,10 @@ class LoanService
     use AuthorizesRequests;
     /**
      * getStatus
+     * get id of the different loan/payment status
+     * 1 - pending
+     * 2 - approved
+     * 3 - paid
      *
      * @param  mixed $slug
      * @return int id
@@ -31,6 +35,7 @@ class LoanService
 
     /**
      * list Loans
+     * list the loans depending on the roles
      *
      * @param  Loan $loan
      * @return array
@@ -62,6 +67,9 @@ class LoanService
 
     /**
      * create Loan
+     * create Loan entry and its scheduled payments
+     * with loan status as 1 - pending
+     * and payment status as 1 - pending
      *
      * @param  mixed $loan
      * @param  mixed $requestData
@@ -112,7 +120,7 @@ class LoanService
     }
 
     /**
-     * view Loan
+     * view Loan depending on the roles
      *
      * @param  mixed $uuid
      * @param  mixed $loan
@@ -150,12 +158,15 @@ class LoanService
      */
     public function repayLoan($requestData, $scheduledPayment)
     {
+        // get the arguments required for loan payment
         $scheduled_payment_uuid = $requestData['scheduled_payment_uuid'];
         $amount = $requestData['amount'];
 
         try {
+            // get the scheduled payment record for which payment is requested
             $scheduledPaymentRecord = $scheduledPayment->where('uuid', $scheduled_payment_uuid)->get();
 
+            // if no record found
             if ($scheduledPaymentRecord->isEmpty()) {
                 return [
                     'data' => [],
@@ -164,11 +175,14 @@ class LoanService
                 ];
             }
 
+            // make sure the user accessing this method has 'repay-loan' permission
             $this->authorize('repay-loan', $scheduledPaymentRecord);
 
+            // make sure the loan is approved before marking it as paid
             $isApproved = $scheduledPaymentRecord->first()->loan->status_id == $this->getStatus('approved');
             if ($isApproved) {
                 $record = $scheduledPaymentRecord->first();
+                // allow to repay loan, only if the amount is greater than or equal to scheduled payment
                 if ($amount >= $record->amount) {
                     $updated = $scheduledPayment->where('uuid', $scheduled_payment_uuid)
                         ->update([
@@ -183,6 +197,9 @@ class LoanService
                             'message' => 'Payment successful',
                             'statusCode' => Response::HTTP_OK
                         ];
+                        // once the scheduled payment is marked as paid,
+                        // check if all the scheduled payments are marked as paid
+                        // if they are all paid, then mark the Loan as paid
                         if ($this->closeLoan($scheduledPaymentRecord)) {
                             $responseData['message'] = 'Full payment done, closing loan';
                         }
@@ -229,6 +246,8 @@ class LoanService
             ];
         }
 
+        // make sure the loan is in pending status, if it is not, do not proceed further
+        // instead return a message as per the loan status
         if ($loanData->first()->status_id !== $this->getStatus('pending')) {
             if ($loanData->first()->status_id === $this->getStatus('approved')) {
                 $message = 'Loan is already approved';
@@ -242,6 +261,7 @@ class LoanService
             ];
         }
 
+        // mark the loan as approved
         $updated = $loan->where('uuid', $loan_uuid)->update(['status_id' => $this->getStatus('approved')]);
         if ($updated) {
             $responseData = [
@@ -258,6 +278,9 @@ class LoanService
      * once all the EMI's status is (3 - Paid)
      * mark the Loan as paid
      *
+     * once the scheduled payment is marked as paid,
+     * check if all the scheduled payments are marked as paid
+     * if they are all paid, then mark the Loan as paid
      * @param  mixed $scheduledPaymentRecord
      * @return void
      */
