@@ -9,6 +9,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AuthTest extends TestCase
 {
+    /**
+     * test_a_user_can_register
+     * vendor/bin/phpunit --filter test_a_user_can_login
+     * php artisan test --filter=test_a_user_can_login
+     *
+     * @return void
+     */
     public function test_a_user_can_register()
     {
         // prepare

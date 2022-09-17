@@ -49,9 +49,9 @@ class AuthController extends Controller
 
             $user = $user->create([
                 'uuid' => Str::orderedUuid(),
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
+                'name' => $requestData['name'],
+                'email' => $requestData['email'],
+                'password' => bcrypt($requestData['password']),
             ]);
 
             if ($request->get('role') === 'admin') {
@@ -78,12 +78,15 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request)
     {
+        // get validated request data
+        $requestData = $request->validated();
+
         try {
             if (!Auth::attempt($request->only(['email', 'password']))) {
                 return $this->errorResponse('Email & Password does not match with our record.', Response::HTTP_UNAUTHORIZED);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $requestData['email'])->first();
             $data = [
                 'user' => $user,
                 'token' => $user->createToken($this->token)->plainTextToken

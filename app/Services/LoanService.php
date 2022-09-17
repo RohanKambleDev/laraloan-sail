@@ -29,6 +29,12 @@ class LoanService
         return Status::getIdBySlug($slug);
     }
 
+    /**
+     * list Loans
+     *
+     * @param  Loan $loan
+     * @return array
+     */
     public function listLoans(Loan $loan)
     {
         try {
@@ -55,7 +61,7 @@ class LoanService
     }
 
     /**
-     * create
+     * create Loan
      *
      * @param  mixed $loan
      * @param  mixed $requestData
@@ -106,7 +112,7 @@ class LoanService
     }
 
     /**
-     * viewLoan
+     * view Loan
      *
      * @param  mixed $uuid
      * @param  mixed $loan
