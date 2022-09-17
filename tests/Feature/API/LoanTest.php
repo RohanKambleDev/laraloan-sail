@@ -229,6 +229,8 @@ class LoanTest extends TestCase
     {
         $reponseArr = $this->loanRepaymentTest();
 
+        // looping over all the emis/scheduled payments of the loan
+        // and paying each emi
         foreach ($reponseArr['data']['scheduled_payments'] as $scheduledPayments) {
 
             //Write the response in laravel-testing.log
