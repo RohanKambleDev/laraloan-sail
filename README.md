@@ -10,9 +10,29 @@ It is an app that allows authenticated users to go through a loan application. I
 required” and “loan term.” All the loans will be assumed to have a “weekly” repayment frequency.
 After the loan is approved, the user must be able to submit the weekly loan repayments. It can be a simplified repay functionality, which won’t need to check if the dates are correct but will just set the weekly amount to be repaid.
 
+## Choices I made for the application
+
+    - used Spatie Roles and Permissions package - https://spatie.be/docs/laravel-permission/v5/introduction
+        - https://laravel-news.com/two-best-roles-permissions-packages
+        - It has a very clear documentation and easy to understand
+        - we can use core laravel's gate methods like `can` to check on any permissions created using this package
+
+    - Created a `LoanService` to separate out the business logic in the service and allow controller do what its job is,
+        - accept the request from the route
+        - send it to the loan service to process
+        - get back the response from the service
+        - finally send a json reponse back to the user
+
+    - Created Separate Request classes for request validation
+    - created `LoanPolicy` to manage different permissions while access different routes
+
 ## Github repo
 
 https://github.com/rohutech/laraloan
+
+## Postman API Documentation
+
+https://documenter.getpostman.com/view/6435819/2s7YfVZVv6
 
 ## Features
 
